@@ -8,8 +8,10 @@ import org.springframework.web.util.HtmlUtils;
 @Controller
 public class GreetingController {
     @MessageMapping("/1")
-    @SendTo("/topic/1")
+    @SendTo({"/topic/1", "/topic/2"})
     public Greeting first(HelloMessage message) throws Exception {
+        System.out.println("first method");
+
         Thread.sleep(500); // simulated delay
         return new Greeting("First, " + HtmlUtils.htmlEscape(message.getName()) + "!");
     }
@@ -17,6 +19,8 @@ public class GreetingController {
     @MessageMapping("/2")
     @SendTo("/topic/2")
     public Greeting second(HelloMessage message) throws Exception {
+        System.out.println("second method");
+
         Thread.sleep(500); // simulated delay
         return new Greeting("Second, " + HtmlUtils.htmlEscape(message.getName()) + "!");
     }
