@@ -1,9 +1,9 @@
 <template>
   <v-app>
     <v-app-bar
-      app
-      color="primary"
-      dark
+        app
+        color="primary"
+        dark
     >
       <h2>Demo Chatting</h2>
     </v-app-bar>
@@ -24,16 +24,10 @@ export default {
     HelloWorld,
   },
 
-  data: () => ({
-    //
-  }),
-  created() {
-    this.test();
+  data() {
+    return {
+      //
+    };
   },
-  methods:{
-    test() {
-      console.log("test log")
-    }
-  }
 };
 </script>
