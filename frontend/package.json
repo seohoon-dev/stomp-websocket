@@ -16,6 +16,7 @@
     "webstomp-client": "^1.2.6"
   },
   "devDependencies": {
+    "@mdi/font": "^5.9.55",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
