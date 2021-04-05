@@ -26,8 +26,40 @@
         <v-col class="text-center">
           <h3>
             환영합니다. {{ nickname }}님!
-            <v-icon class="exit">{{ 'mdi-bell' }}</v-icon>
-<!--            <v-icon class="exit">{{ 'mdi-bell-ring' }}</v-icon>-->
+            <v-menu
+                open-on-hover
+                down
+                offset-y
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-icon
+                    v-if="noti"
+                    color="primary"
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="noti = false"
+                >
+                  {{ 'mdi-bell-ring' }}
+                </v-icon>
+                <v-icon
+                    v-else
+                    color="primary"
+                    v-bind="attrs"
+                    v-on="on"
+                >
+                  {{ 'mdi-bell' }}
+                </v-icon>
+              </template>
+
+              <v-list>
+                <v-list-item
+                    v-for="(item, index) in notiList"
+                    :key="index"
+                >
+                  <v-list-item-title>{{ item }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </h3>
         </v-col>
       </v-row>
@@ -144,6 +176,8 @@ export default {
   data() {
     return {
       dialog: false,
+      noti: false,
+      notiList: ['first noti', 'second noti'],
       showInputName: true,
       showRoomList: false,
       showChatting: false,
@@ -160,6 +194,7 @@ export default {
       },
       sendMessage: '',
       recvMessage: [],
+      retry: 0,
     }
   },
   created() {
@@ -225,19 +260,23 @@ export default {
       console.log(`소켓 연결을 시도합니다. 서버 주소: ${serverURL}`)
       this.stompClient.connect({}, frame => {
             // 소켓 연결 성공
-            this.connected = true;
             console.log('소켓 연결 성공', frame);
 
             this.stompClient.subscribe("/topic/list", res => {
               console.log('방 목록 업데이트', res.body);
-              // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
+              // 받은 데이터를 json 으로 파싱하고 리스트에 넣어줍니다.
               this.roomList = JSON.parse(res.body);
             });
           },
           error => {
-            // 소켓 연결 실패
-            console.log('소켓 연결 실패', error);
-            this.connected = false;
+            console.log('STOMP connection failed: ' + error);
+            if (this.retry < 3) { // 연결 재시도
+              console.log('STOMP: Reconnecting in 10 seconds');
+              setTimeout(this.connect, 10000);
+              this.retry++;
+            } else {  // 연결 실패
+              this.retry = 0;
+            }
           }
       );
     },
@@ -251,6 +290,10 @@ export default {
 
       eventSource.onmessage = res => {
         console.log("sse response = " + res.data);
+        if (res.data !== null) {
+          this.noti = true;
+          this.notiList.push(res.data);
+        }
       };
     },
     sendNoti() {
