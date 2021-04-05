@@ -1,5 +1,5 @@
 <template>
-  <v-container class="text-center">
+  <v-container>
     <div v-if="showInputName">
       <v-row>
         <v-col>
@@ -22,9 +22,13 @@
     </div>
 
     <div v-if="!showInputName">
-      <v-row>
-        <v-col>
-          <h3>환영합니다. {{ nickname }}님!</h3>
+      <v-row class="mb-5">
+        <v-col class="text-center">
+          <h3>
+            환영합니다. {{ nickname }}님!
+            <v-icon class="exit">{{ 'mdi-bell' }}</v-icon>
+<!--            <v-icon class="exit">{{ 'mdi-bell-ring' }}</v-icon>-->
+          </h3>
         </v-col>
       </v-row>
     </div>
@@ -86,13 +90,24 @@
           </v-card>
         </v-dialog>
       </v-row>
+
+      <v-row class="mt-5">
+        <v-btn
+            color="gray"
+            dark
+            width="100%"
+            @click="sendNoti"
+        >
+          전체 공지
+        </v-btn>
+      </v-row>
     </div>
 
     <div v-if="showChatting">
       <v-row>
         <v-col>
           <h3 class="text-left">
-            <v-icon class="exit" @click="exit">{{ 'mdi-arrow-left' }}</v-icon>
+            <v-icon class="exit" @click="exitRoom">{{ 'mdi-arrow-left' }}</v-icon>
             채팅
           </h3>
         </v-col>
@@ -149,16 +164,9 @@ export default {
   },
   created() {
     this.connect();
+    this.connectSSE();
   },
   methods: {
-    exit() {
-      console.log('퇴장');
-      this.showRoomList = true;
-      this.showChatting = false;
-      this.currRoomSubInfo.unsubscribe();
-      this.recvMessage = [];
-      this.stompClient.send("/app/exit", {}, this.currRoomId);
-    },
     createRoom() {
       let my = this;
       console.log("roomTitle = " + my.roomTitle.title);
@@ -187,20 +195,21 @@ export default {
       this.stompClient.send("/app/join", {}, roomId);
       this.currRoomId = roomId;
     },
+    exitRoom() {
+      console.log('퇴장');
+      this.showRoomList = true;
+      this.showChatting = false;
+      this.currRoomSubInfo.unsubscribe();
+      this.recvMessage = [];
+      this.stompClient.send("/app/exit", {}, this.currRoomId);
+    },
     getRoomList() {
       console.log("목록");
       this.stompClient.send("/app/list");
     },
-    exitRoom() {
-      console.log("퇴장");
-      this.showRoomList = true;
-      this.showChatting = false;
-
-      this.currRoomSubInfo.unsubscribe();
-    },
     send(currRoomId) {
       console.log("Send message : " + this.sendMessage);
-      // if (this.stompClient && this.stompClient.connected) {
+
       const msg = {
         name: this.nickname,
         content: this.sendMessage
@@ -219,12 +228,6 @@ export default {
             this.connected = true;
             console.log('소켓 연결 성공', frame);
 
-            // test sub
-            this.testSub = this.stompClient.subscribe("/topic/test", res => {
-              console.log('테스트 메시지 입니다.', res.body);
-              this.recvMessage.push(res.body);
-            });
-
             this.stompClient.subscribe("/topic/list", res => {
               console.log('방 목록 업데이트', res.body);
               // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
@@ -237,6 +240,25 @@ export default {
             this.connected = false;
           }
       );
+    },
+    connectSSE() {
+      console.log("sse connect...")
+      const eventSource = new EventSource(`/api/sub/noti?id=${Math.random()}`);
+
+      eventSource.onopen = res => console.log(res);
+
+      eventSource.onerror = res => console.log(res);
+
+      eventSource.onmessage = res => {
+        console.log("sse response = " + res.data);
+      };
+    },
+    sendNoti() {
+      axios.get(
+          "/api/pub/noti"
+      ).catch(error => {
+        console.log("에러 메시지 " + error);
+      });
     }
   }
 }
