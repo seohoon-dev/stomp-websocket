@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChattingMessage {
-    private String name;
-    private String content;
+public class RoomInAndOut {
+    private int roomId;
+    private String username;
 }

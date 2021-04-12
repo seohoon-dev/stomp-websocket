@@ -14,7 +14,7 @@ public class ChattingController {
 
     @MessageMapping("/room/{id}")
     @SendTo("/topic/room/{id}")
-    public ChattingMessage chat(@DestinationVariable String id, ChattingMessage message) throws Exception {
+    public ChattingMessage chat(@DestinationVariable int id, ChattingMessage message) throws Exception {
         System.out.println("chat method");
 
         Thread.sleep(100); // simulated delay

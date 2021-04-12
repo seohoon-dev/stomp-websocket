@@ -227,7 +227,12 @@ export default {
         this.recvMessage.push(JSON.parse(res.body));
       });
 
-      this.stompClient.send("/app/join", {}, roomId);
+      const msg = {
+        roomId: roomId,
+        username: this.nickname,
+      };
+
+      this.stompClient.send("/app/join", {}, JSON.stringify(msg));
       this.currRoomId = roomId;
     },
     exitRoom() {
@@ -236,7 +241,13 @@ export default {
       this.showChatting = false;
       this.currRoomSubInfo.unsubscribe();
       this.recvMessage = [];
-      this.stompClient.send("/app/exit", {}, this.currRoomId);
+
+      const msg = {
+        roomId: this.currRoomId,
+        username: this.nickname,
+      };
+
+      this.stompClient.send("/app/exit", {}, JSON.stringify(msg));
     },
     getRoomList() {
       console.log("목록");

@@ -1,9 +1,9 @@
 package com.example.messagingstompwebsocket.controller;
 
+import com.example.messagingstompwebsocket.domain.ChattingMessage;
 import com.example.messagingstompwebsocket.domain.Room;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.messagingstompwebsocket.domain.RoomInAndOut;
+import com.example.messagingstompwebsocket.domain.RoomTitle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RestController
 @RequiredArgsConstructor
 public class RoomController {
-    private final ChattingController chattingController;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     public static AtomicInteger roomId = new AtomicInteger(1);
@@ -61,17 +60,23 @@ public class RoomController {
     }
 
     @MessageMapping("/join")
-    public void join(int id) {
+    public void join(@RequestBody RoomInAndOut roomInAndOut) {
+        int id = roomInAndOut.getRoomId();
         Room room = roomInfo.get(id);
         room.setCount(room.getCount() + 1);
 
         System.out.println("room.getCount() = " + room.getCount());
 
         roomInfo.put(id, room);
+
+        // 입장 메시지
+        simpMessagingTemplate.convertAndSend("/topic/room/" + id,
+                new ChattingMessage("System", roomInAndOut.getUsername() + "님이 입장했습니다."));
     }
 
     @MessageMapping("/exit")
-    public void exit(int id) {
+    public void exit(@RequestBody RoomInAndOut roomInAndOut) {
+        int id = roomInAndOut.getRoomId();
         System.out.println("id = " + id);
 
         Room room = roomInfo.get(id);
@@ -85,14 +90,11 @@ public class RoomController {
             System.out.println("room.getCount() = " + room.getCount());
         }
 
+        // 퇴장 메시지
+        simpMessagingTemplate.convertAndSend("/topic/room/" + id,
+                new ChattingMessage("System", roomInAndOut.getUsername() + "님이 퇴장했습니다."));
+
         // 방 목록
         simpMessagingTemplate.convertAndSend("/topic/list", list());
     }
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class RoomTitle {
-    private String title;
 }
