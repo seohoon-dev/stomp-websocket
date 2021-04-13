@@ -53,7 +53,7 @@ public class RoomController {
 
     @MessageMapping("/list")
     @SendTo("/topic/list")
-    public List<Room> list() {
+    public List<Room> list() {  // nested, reactive
         System.out.println("list method");
 
         return new ArrayList<>(roomInfo.values());

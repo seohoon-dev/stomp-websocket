@@ -308,6 +308,8 @@ export default {
       };
     },
     sendNoti() {
+      console.log("전체 공지")
+
       axios.get(
           "/api/pub/noti"
       ).catch(error => {
